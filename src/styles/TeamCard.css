@@ -1,0 +1,71 @@
+/* src/styles/TeamCard.css */
+.team-card {
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #16213e, #0f1b3a);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid #2a3a6b;
+  transition: all 0.4s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.team-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(110, 142, 251, 0.3), rgba(167, 119, 228, 0.2));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: 20px;
+}
+
+.team-card:hover {
+  transform: translateY(-8px) scale(1.025);
+  box-shadow: 0 10px 20px rgba(110, 142, 251, 0.4);
+  border-color: #8ec5fc;
+}
+
+.team-card:hover::before {
+  opacity: 1;
+}
+
+.team-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  text-decoration: none;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 10;
+}
+
+.team-card-content {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.team-name {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #a777e4, #6e8efb, #8ec5fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.team-players {
+  -webkit-text-fill-color: rgb(255, 255, 255);
+  font-size: 20px;
+  }
+
+/* Adjust text size on smaller screens */
+@media (max-width: 900px) {
+  .team-name {
+    font-size: 1.9rem;
+  }
+}
