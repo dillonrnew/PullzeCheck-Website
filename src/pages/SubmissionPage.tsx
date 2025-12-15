@@ -1,14 +1,39 @@
+// src/pages/TeamPage.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import imageCompression from 'browser-image-compression';
 import '../styles/teamPage.css';
 
-const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
+type Team = {
+  id: number;
+  tournament_id: number;
+  team_number: number;
+  name: string;
+  player1_name: string;
+  player2_name: string;
+  player3_name: string;
+};
+
+const TeamPage: React.FC = () => {
+  const { tournamentId, teamNumber } = useParams<{ tournamentId: string; teamNumber: string }>();
+
+  // Guards + convert to numbers
+  if (!tournamentId || !teamNumber || Number.isNaN(Number(tournamentId)) || Number.isNaN(Number(teamNumber))) {
+    return <p>Invalid route. Expected /submit/:tournamentId/:teamNumber</p>;
+  }
+
+  const tId = Number(tournamentId);
+  const tNum = Number(teamNumber);
+
+  const [team, setTeam] = useState<Team | null>(null);
+  const [loadingTeam, setLoadingTeam] = useState(true);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [mapNumber, setMapNumber] = useState<number>(1);
   const [placement, setPlacement] = useState<number>(0);
-  const [playerKills, setPlayerKills] = useState(['', '', '']); // Empty strings instead of 0s
+  const [playerKills, setPlayerKills] = useState(['', '', '']);
   const [submitting, setSubmitting] = useState(false);
 
   const pasteTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -21,6 +46,32 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
     fileType: 'image/jpeg',
     initialQuality: 0.85,
   };
+
+  // Fetch team by tournament_id + team_number
+  useEffect(() => {
+    const fetchTeam = async () => {
+      setLoadingTeam(true);
+
+      const { data, error } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('tournament_id', tId)
+        .eq('team_number', tNum)
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching team:', error);
+        setTeam(null);
+      } else {
+        setTeam(data?.[0] ?? null);
+      }
+
+      setLoadingTeam(false);
+    };
+
+    fetchTeam();
+  }, [tId, tNum]);
+
 
   // Handle file upload
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,14 +143,20 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!team) {
+      alert('Team not found. Please check the link and try again.');
+      return;
+    }
+
     if (!imageFile) {
       alert('Please upload or paste a scoreboard image.');
       return;
     }
 
     // Validate kills are numbers and not empty
-    const killsNums = playerKills.map(k => k === '' ? 0 : Number(k));
-    if (killsNums.some(isNaN)) {
+    const killsNums = playerKills.map((k) => (k === '' ? 0 : Number(k)));
+    if (killsNums.some((n) => Number.isNaN(n))) {
       alert('Please enter valid numbers for player kills.');
       return;
     }
@@ -107,7 +164,7 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
     setSubmitting(true);
 
     try {
-      const fileName = `team${teamId}_map${mapNumber}_${Date.now()}.jpg`;
+      const fileName = `t${tournamentId}_team${teamNumber}_teamId${team.id}_map${mapNumber}_${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('scoreboards')
@@ -124,7 +181,8 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
       const { error: insertError } = await supabase
         .from('submissions')
         .insert({
-          team_id: teamId,
+          team_id: team.id,
+          tournament_id: team.tournament_id,
           map_number: mapNumber,
           player1_kills: killsNums[0],
           player2_kills: killsNums[1],
@@ -138,7 +196,7 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
       alert('Submission uploaded successfully!');
 
       // Reset form
-      setMapNumber(prev => prev + 1);
+      setMapNumber((prev) => prev + 1);
       setPlacement(0);
       setPlayerKills(['', '', '']);
       setImageFile(null);
@@ -156,16 +214,40 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
     ? '✓ Image added – Ctrl+V to replace'
     : 'Click here and press Ctrl+V to paste your scoreboard screenshot...';
 
+  if (loadingTeam) {
+    return (
+      <div className="team-page">
+        <div className="form-container">
+          <h1>Loading team...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="team-page">
+        <div className="form-container">
+          <h1>Team Not Found</h1>
+          <p>
+            No team #{teamNumber} found for tournament {tournamentId}.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="team-page">
       <div className="form-container">
         <h1>Submit Your Score</h1>
+
         <form onSubmit={handleSubmit}>
           <label>Map Number</label>
           <input
             type="number"
             value={mapNumber}
-            onChange={e => setMapNumber(Number(e.target.value))}
+            onChange={(e) => setMapNumber(Number(e.target.value))}
             min="1"
             required
           />
@@ -173,25 +255,28 @@ const TeamPage: React.FC<{ teamId: number }> = ({ teamId }) => {
           <label>Map Placement</label>
           <select
             value={placement || ''}
-            onChange={e => setPlacement(Number(e.target.value))}
+            onChange={(e) => setPlacement(Number(e.target.value))}
             required
           >
-            <option value="" disabled>Select placement</option>
-            {Array.from({ length: 16 }, (_, i) => i + 1).map(i => (
+            <option value="" disabled>
+              Select placement
+            </option>
+            {Array.from({ length: 17 }, (_, i) => i + 1).map((i) => (
               <option key={i} value={i}>
-                {i}{i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th'}
+                {i}
+                {i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th'}
               </option>
             ))}
           </select>
 
-          {['Player 1', 'Player 2', 'Player 3'].map((player, idx) => (
+          {[team.player1_name, team.player2_name, team.player3_name].map((player, idx) => (
             <div key={idx} className="kills-input-group">
               <label>{player} Kills</label>
               <input
                 type="number"
                 value={playerKills[idx]}
-                onChange={e =>
-                  setPlayerKills(prev => {
+                onChange={(e) =>
+                  setPlayerKills((prev) => {
                     const copy = [...prev];
                     copy[idx] = e.target.value;
                     return copy;

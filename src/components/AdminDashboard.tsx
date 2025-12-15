@@ -2,6 +2,32 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { RefreshCcw } from 'lucide-react';
+import '../styles/AdminDashboard.css';
+
+type TeamJoinRow = {
+  player1_name: string | null;
+  player2_name: string | null;
+  player3_name: string | null;
+};
+
+// Supabase can return the joined relationship as:
+// - an array (common in PostgREST)
+// - a single object (sometimes)
+// - null
+type TeamJoinShape = TeamJoinRow[] | TeamJoinRow | null;
+
+type SubmissionRow = {
+  id: string;
+  team_id: number;
+  map_number: number;
+  player1_kills: number;
+  player2_kills: number;
+  player3_kills: number;
+  placement: number | null;
+  scoreboard_image_url: string | null;
+  status: string; // DB is text; we’ll normalize
+  team: TeamJoinShape; // 👈 robust
+};
 
 type Submission = {
   id: string;
@@ -10,45 +36,91 @@ type Submission = {
   player1_kills: number;
   player2_kills: number;
   player3_kills: number;
-  placement: number;
-  scoreboard_image_url: string;
+  placement: number | null;
+  scoreboard_image_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
   teams?: {
-    name: string;
     player1_name: string;
     player2_name: string;
     player3_name: string;
-    logo_url: string;
   };
 };
+
+const POLL_INTERVAL_MS = 30_000;
+
+function pickTeam(team: TeamJoinShape): TeamJoinRow | null {
+  if (!team) return null;
+  return Array.isArray(team) ? (team[0] ?? null) : team;
+}
+
+function normalizeStatus(s: string): Submission['status'] {
+  if (s === 'approved' || s === 'rejected' || s === 'pending') return s;
+  return 'pending';
+}
 
 const AdminDashboard: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch submissions from Supabase
   const fetchSubmissions = async () => {
-    const { data, error } = await supabase
+    const query = supabase
       .from('submissions')
-      .select(`
-        *,
-        teams (
-          name,
+      .select(
+        `
+        id,
+        team_id,
+        map_number,
+        player1_kills,
+        player2_kills,
+        player3_kills,
+        placement,
+        scoreboard_image_url,
+        status,
+        team:teams!submissions_team_id_fkey (
           player1_name,
           player2_name,
-          player3_name,
-          logo_url
+          player3_name
         )
-      `)
-      .order('created_at', { ascending: false });
+      `
+      )
+      .order('id', { ascending: false })
+      // ✅ This is the key to “no TS errors”
+      .returns<SubmissionRow[]>();
 
-    if (error) console.error(error);
-    setSubmissions(data as Submission[]);
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching submissions:', error);
+      return;
+    }
+
+    const normalized: Submission[] = (data ?? []).map((r) => {
+      const t0 = pickTeam(r.team);
+
+      return {
+        id: r.id,
+        team_id: r.team_id,
+        map_number: r.map_number,
+        player1_kills: r.player1_kills,
+        player2_kills: r.player2_kills,
+        player3_kills: r.player3_kills,
+        placement: r.placement,
+        scoreboard_image_url: r.scoreboard_image_url,
+        status: normalizeStatus(r.status),
+        teams: t0
+          ? {
+              player1_name: t0.player1_name ?? '',
+              player2_name: t0.player2_name ?? '',
+              player3_name: t0.player3_name ?? '',
+            }
+          : undefined,
+      };
+    });
+
+    setSubmissions(normalized);
     setLoading(false);
   };
 
-  // Toggle submission status
   const toggleStatus = async (submission: Submission) => {
     const newStatus =
       submission.status === 'pending'
@@ -62,153 +134,117 @@ const AdminDashboard: React.FC = () => {
       .update({ status: newStatus })
       .eq('id', submission.id);
 
-    if (error) console.error(error);
+    if (error) console.error('Error updating status:', error);
+
+    fetchSubmissions();
   };
 
-  // Export CSV
-  const exportCSV = () => {
-    const header = [
-      'Team',
-      'Map #',
-      'P1 Name',
-      'P1 Kills',
-      'P2 Name',
-      'P2 Kills',
-      'P3 Name',
-      'P3 Kills',
-      'Placement',
-      'Total Kills',
-      'Status',
-      'Submitted At',
-    ];
-
-    const rows = submissions.map((s) => [
-      s.teams?.name ?? '',
-      s.map_number,
-      s.teams?.player1_name ?? '',
-      s.player1_kills,
-      s.teams?.player2_name ?? '',
-      s.player2_kills,
-      s.teams?.player3_name ?? '',
-      s.player3_kills,
-      s.placement,
-      s.player1_kills + s.player2_kills + s.player3_kills,
-      s.status,
-      s.created_at,
-    ]);
-
-    const csvContent = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'submissions.csv';
-    link.click();
-  };
-
-  // Realtime subscription
   useEffect(() => {
     fetchSubmissions();
-
-    const channel = supabase
-      .channel('submissions-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'submissions' },
-        () => fetchSubmissions()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const intervalId = window.setInterval(fetchSubmissions, POLL_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
   }, []);
 
-  if (loading) return <p className="text-center mt-8">Loading submissions...</p>;
+  if (loading) return <p className="loading-text">Loading submissions...</p>;
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold mb-4 md:mb-0">Admin Dashboard</h1>
-        <div className="flex gap-2">
-          <button
-            className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            onClick={fetchSubmissions}
-          >
-            <RefreshCcw size={18} />
-            Refresh
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={exportCSV}
-          >
-            Export CSV
-          </button>
-        </div>
-      </div>
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="header">
+          <h1 className="title">Admin Dashboard</h1>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Team</th>
-              <th className="border p-2">Map #</th>
-              <th className="border p-2">P1 (Kills)</th>
-              <th className="border p-2">P2 (Kills)</th>
-              <th className="border p-2">P3 (Kills)</th>
-              <th className="border p-2">Total</th>
-              <th className="border p-2">Placement</th>
-              <th className="border p-2">Time</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Toggle</th>
-              <th className="border p-2">Scoreboard</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submissions.map((s) => (
-              <tr key={s.id} className="text-center hover:bg-gray-50">
-                <td className="border p-2 flex items-center gap-2">
-                  {s.teams?.logo_url && (
-                    <img src={s.teams.logo_url} alt={s.teams.name} className="w-6 h-6 object-cover rounded-full" />
-                  )}
-                  {s.teams?.name}
-                </td>
-                <td className="border p-2">{s.map_number}</td>
-                <td className="border p-2">{s.teams?.player1_name} ({s.player1_kills})</td>
-                <td className="border p-2">{s.teams?.player2_name} ({s.player2_kills})</td>
-                <td className="border p-2">{s.teams?.player3_name} ({s.player3_kills})</td>
-                <td className="border p-2">{s.player1_kills + s.player2_kills + s.player3_kills}</td>
-                <td className="border p-2">{s.placement}</td>
-                <td className="border p-2">{new Date(s.created_at).toLocaleString()}</td>
-                <td className={`border p-2 font-bold text-${s.status === 'pending' ? 'orange-500' : s.status === 'approved' ? 'green-600' : 'red-600'}`}>
-                  {s.status}
-                </td>
-                <td className="border p-2">
-                  <button
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                    onClick={() => toggleStatus(s)}
-                  >
-                    {s.status === 'pending' ? 'Approve' : s.status === 'approved' ? 'Reject' : 'Set Pending'}
-                  </button>
-                </td>
-                <td className="border p-2">
-                  {s.scoreboard_image_url && (
-                    <a
-                      href={`${s.scoreboard_image_url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <img
-                        src={`${s.scoreboard_image_url}`}
-                        alt="Scoreboard"
-                        className="w-16 h-16 object-cover border rounded"
-                      />
-                    </a>
-                  )}
-                </td>
+          <div className="button-group">
+            <button className="refresh-button" onClick={fetchSubmissions}>
+              <RefreshCcw size={18} />
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="submission-table">
+            <colgroup>
+              <col className="col-map" />
+              <col className="col-kills" />
+              <col className="col-placement" />
+              <col className="col-toggle" />
+              <col className="col-scoreboard" />
+            </colgroup>
+
+            <thead>
+              <tr className="table-header-row">
+                <th className="table-header">Map #</th>
+                <th className="table-header">Kills</th>
+                <th className="table-header">Placement</th>
+                <th className="table-header">Toggle</th>
+                <th className="table-header">Scoreboard</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {submissions.map((s) => (
+                <tr key={s.id} className="table-row">
+                  <td className="table-cell cell-center">{s.map_number}</td>
+
+                  <td className="table-cell">
+                    <div className="players-cell">
+                      <div className="player-line">
+                        <span className="player-name">{s.teams?.player1_name ?? ''}</span>
+                        <span className="player-kills">{s.player1_kills}</span>
+                      </div>
+                      <div className="player-line">
+                        <span className="player-name">{s.teams?.player2_name ?? ''}</span>
+                        <span className="player-kills">{s.player2_kills}</span>
+                      </div>
+                      <div className="player-line">
+                        <span className="player-name">{s.teams?.player3_name ?? ''}</span>
+                        <span className="player-kills">{s.player3_kills}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="table-cell cell-center">{s.placement ?? ''}</td>
+
+                  <td className="table-cell cell-center">
+                    <button
+                      className={`toggle-button ${
+                        s.status === 'pending'
+                          ? 'approve'
+                          : s.status === 'approved'
+                          ? 'reject'
+                          : 'pending'
+                      }`}
+                      onClick={() => toggleStatus(s)}
+                    >
+                      {s.status === 'pending'
+                        ? 'Approve'
+                        : s.status === 'approved'
+                        ? 'Reject'
+                        : 'Set Pending'}
+                    </button>
+                  </td>
+
+                  <td className="table-cell cell-center">
+                    {s.scoreboard_image_url && (
+                      <a
+                        className="scoreboard-link"
+                        href={s.scoreboard_image_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          className="scoreboard-thumb"
+                          src={s.scoreboard_image_url}
+                          alt="Scoreboard"
+                        />
+                      </a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

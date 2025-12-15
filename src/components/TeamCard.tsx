@@ -1,22 +1,32 @@
-// src/components/TeamCard.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import '../styles/TeamCard.css';
 
 interface TeamCardProps {
   team: {
     id: number;
-    name: string;
-    logo_url: string;
+    tournament_id: number;
+    team_number: number;
+    player1_name: string;
+    player2_name: string;
+    player3_name: string;
   };
 }
 
 const TeamCard: React.FC<TeamCardProps> = ({ team }) => {
   return (
     <div className="team-card">
-      <Link to={`/teams/${team.id}`}>
+      <Link
+        to={`/submit/${team.tournament_id}/${team.team_number}`}
+        className="team-card-link"
+        aria-label={`Submit for Team ${team.team_number}`}
+      >
         <div className="team-card-content">
-          <img src={team.logo_url} alt={team.name} className="team-logo" />
-          <h2>{team.name}</h2>
+          <div className="team-players">
+            <div>{team.player1_name}</div>
+            <div>{team.player2_name}</div>
+            <div>{team.player3_name}</div>
+          </div>
         </div>
       </Link>
     </div>

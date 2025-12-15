@@ -1,23 +1,19 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import TeamPage from './pages/TeamPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import TourneysPage from './pages/TourneysPage';
+import TeamsPage from './pages/TeamsPage';
+import SubmissionPage from './pages/SubmissionPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-
-// Wrapper component to pass teamId prop to TeamPage
-const TeamWrapper: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  if (!id) return <p>Invalid team ID</p>;
-  return <TeamPage teamId={Number(id)} />;
-};
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/teams/:id" element={<TeamWrapper />} />
+        <Route path="/" element={<TourneysPage />} />
+        <Route path="/tourney/:tournamentId" element={<TeamsPage />} />
+        <Route path="/submit/:tournamentId/:teamNumber" element={<SubmissionPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
