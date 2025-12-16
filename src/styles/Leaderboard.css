@@ -1,0 +1,94 @@
+/* src/components/Leaderboard.css - Full updated file (highlight removed) */
+
+.leaderboard-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.leaderboard-title {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.leaderboard-table {
+    width: auto;
+    min-width: 500px;
+    max-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+
+    /* Border around the entire table */
+    border: 2px solid #1e40af;
+
+    /* Rounded corners */
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.header-row {
+    background-color: #1e40af;
+    /* dark blue header */
+    color: white;
+}
+
+.leaderboard-table th {
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.leaderboard-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* NEW: Remove the bottom border from cells in the very last row */
+.leaderboard-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Highlight (hover effect) completely removed - no more color change on hover */
+
+/* Text selection remains visible: white text on blue background when dragging to select */
+.leaderboard-table::selection,
+.leaderboard-table *::selection {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.leaderboard-table::-moz-selection,
+.leaderboard-table *::-moz-selection {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.entry-count {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+}
+
+/* Stops the white flash when dragging out of the page */
+html,
+body {
+    overscroll-behavior: none;
+}
+
+.player-names-cell {
+    padding: 12px 12px;
+    vertical-align: middle;
+}
+
+.player-name-line {
+    line-height: 1.6;
+    /* Nice spacing between names */
+    white-space: nowrap;
+    /* Prevents wrapping of long names */
+}
+
+.empty-name {
+    color: transparent;
+}
