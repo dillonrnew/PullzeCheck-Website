@@ -1,0 +1,203 @@
+/* ===============================
+   ROOT VARIABLES
+   =============================== */
+:root {
+  --thb-bg: #0b0d12;
+  --thb-surface: rgba(255, 255, 255, 0.03);
+  --thb-border: rgba(255, 255, 255, 0.08);
+
+  --thb-text: rgba(255, 255, 255, 0.92);
+  --thb-muted: rgba(255, 255, 255, 0.55);
+
+  --thb-accent: #a777e4;
+  --thb-accent-soft: rgba(167, 119, 228, 0.18);
+
+  --thb-radius: 16px;
+}
+
+/* ===============================
+   TOP BAR CONTAINER
+   =============================== */
+.thb {
+  height: 30px;
+  background: var(--thb-bg);
+  border-bottom: 1px solid var(--thb-border);
+  color: var(--thb-text);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 14px;
+}
+
+/* Right side container */
+.thb-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===============================
+   AUTH BUTTONS (SIGNED OUT)
+   =============================== */
+.thb-btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--thb-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--thb-text);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.thb-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.thb-btnPrimary {
+  background: var(--thb-accent-soft);
+  border-color: rgba(167, 119, 228, 0.55);
+}
+
+.thb-btnPrimary:hover {
+  background: rgba(167, 119, 228, 0.26);
+}
+
+.thb-btnGhost {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.thb-skeleton {
+  color: var(--thb-muted);
+  font-weight: 700;
+}
+
+/* ===============================
+   USER MENU (SIGNED IN)
+   =============================== */
+.thb-menuWrap {
+  position: relative;
+}
+
+/* Clickable user pill */
+.thb-userBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px;
+  background: transparent;     /* 🔥 blend with bar */
+  border: none;                /* 🔥 remove box */
+  border-radius: var(--thb-radius);
+  cursor: pointer;
+  color: var(--thb-text);
+}
+
+.thb-userBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.thb-userBtn:focus-visible {
+  outline: 2px solid rgba(167, 119, 228, 0.55);
+  outline-offset: 2px;
+}
+
+/* Avatar */
+.thb-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  background: var(--thb-accent-soft);
+  border: 1px solid rgba(167, 119, 228, 0.45);
+  flex-shrink: 0;
+}
+
+/* Name */
+.thb-userMeta {
+  display: flex;
+  align-items: center;
+}
+
+.thb-userName {
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* Caret (arrow) INSIDE pill */
+.thb-caret {
+  font-size: 15px; /* ⬅ slightly bigger */
+  opacity: 0.75;
+  margin-left: 2px;
+  line-height: 1;
+}
+
+/* ===============================
+   DROPDOWN MENU
+   =============================== */
+.thb-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 220px;
+  background: #0b0d12;
+  border: 1px solid var(--thb-border);
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.75);
+}
+
+/* Dropdown items */
+.thb-ddItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--thb-text);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.thb-ddItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.thb-ddDivider {
+  height: 1px;
+  background: var(--thb-border);
+  margin: 6px 0;
+}
+
+.thb-ddDanger {
+  color: rgba(255, 150, 150, 0.95);
+}
+
+.thb-ddDanger:hover {
+  background: rgba(255, 90, 90, 0.12);
+}
+
+/* ===============================
+   MOBILE TWEAKS
+   =============================== */
+@media (max-width: 920px) {
+  .thb-userName {
+    display: none; /* avatar + caret only */
+  }
+
+  .thb-userBtn {
+    padding: 6px 10px;
+  }
+}

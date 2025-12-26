@@ -1,0 +1,299 @@
+/* ===============================
+   ROOT VARIABLES (Near Black)
+   =============================== */
+:root {
+  --ls-bg: #0d0f14;
+  --ls-bg-hover: #161b2e;
+
+  --ls-border: rgba(255, 255, 255, 0.08);
+  --ls-border-strong: rgba(167, 119, 228, 0.55);
+
+  --ls-text: rgba(255, 255, 255, 0.92);
+  --ls-muted: rgba(255, 255, 255, 0.55);
+
+  --ls-accent: #a777e4;
+  --ls-accent-soft: rgba(167, 119, 228, 0.18);
+
+  --ls-radius: 14px;
+  --ls-shadow: 0 18px 60px rgba(0, 0, 0, 0.75);
+
+  --ls-width: 280px;
+  --ls-width-collapsed: 78px;
+
+  --ls-pad: 14px;
+}
+
+/* ===============================
+   MOBILE TOP BAR
+   =============================== */
+.ls-mobileTop {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #0b0d12;
+  border-bottom: 1px solid var(--ls-border);
+}
+
+.ls-mobileBrand {
+  display: flex;
+  flex-direction: column;
+}
+
+.ls-mobileBrand .ls-brandText {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.ls-mobileBrand .ls-subtitle {
+  font-size: 12px;
+  color: var(--ls-muted);
+}
+
+/* ===============================
+   MOBILE OVERLAY
+   =============================== */
+.ls-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 80;
+}
+
+.ls-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===============================
+   SIDEBAR CONTAINER
+   =============================== */
+.ls {
+  width: var(--ls-width);
+  min-width: var(--ls-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  background: var(--ls-bg);
+  border-right: 1px solid var(--ls-border);
+  box-shadow: var(--ls-shadow);
+  color: var(--ls-text);
+
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.ls.collapsed {
+  width: var(--ls-width-collapsed);
+  min-width: var(--ls-width-collapsed);
+}
+
+/* ===============================
+   TOP BAR
+   =============================== */
+.ls-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ls-pad);
+  border-bottom: 1px solid var(--ls-border);
+  gap: 10px;
+}
+
+.ls-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ls-brandText {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ls-subtitle {
+  font-size: 12px;
+  color: var(--ls-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ls.collapsed .ls-brandText,
+.ls.collapsed .ls-subtitle {
+  display: none;
+}
+
+.ls-topBtns {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===============================
+   ICON BUTTONS
+   =============================== */
+.ls-iconBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--ls-border);
+  background: #121622;
+  color: var(--ls-text);
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.ls-iconBtn:hover {
+  background: #1a2040;
+  transform: translateY(-1px);
+}
+
+.ls-closeMobile {
+  display: none;
+}
+
+/* ===============================
+   SCROLL AREA
+   =============================== */
+.ls-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+/* Scrollbar */
+.ls-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ls-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+/* ===============================
+   NAV ITEMS (FLAT LIST)
+   =============================== */
+.ls-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ls-item {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--ls-radius);
+
+  background: #0f1220;
+  border: 1px solid var(--ls-border);
+  color: var(--ls-text);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.ls-item:hover {
+  background: var(--ls-bg-hover);
+  border-color: rgba(110, 142, 251, 0.35);
+}
+
+.ls-item.active {
+  background: var(--ls-accent-soft);
+  border-color: var(--ls-border-strong);
+}
+
+/* Left content */
+.ls-itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Dot indicator */
+.ls-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(110, 142, 251, 0.9);
+  flex-shrink: 0;
+}
+
+.ls-item.active .ls-dot {
+  background: var(--ls-accent);
+}
+
+/* Label */
+.ls-label {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge */
+.ls-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--ls-accent-soft);
+  border: 1px solid var(--ls-border-strong);
+}
+
+/* ===============================
+   COLLAPSED MODE
+   =============================== */
+.ls.collapsed .ls-label,
+.ls.collapsed .ls-badge {
+  display: none;
+}
+
+.ls.collapsed .ls-item {
+  justify-content: center;
+}
+
+/* ===============================
+   MOBILE
+   =============================== */
+@media (max-width: 920px) {
+  .ls-mobileTop {
+    display: flex;
+  }
+
+  .ls {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-110%);
+    transition: transform 180ms ease;
+  }
+
+  .ls.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .ls-closeMobile {
+    display: grid;
+  }
+}

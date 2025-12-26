@@ -19,9 +19,9 @@ export default function Leaderboard() {
         async function fetchLeaderboard() {
             try {
                 const { data, error } = await supabase
-                    .from('Leaderboard')
-                    .select('*')
-                    .order('position', { ascending: true });
+                .from('Leaderboard')
+                .select('*')
+                .order('id', { ascending: true })
 
                 if (error) throw error;
 
@@ -64,9 +64,9 @@ export default function Leaderboard() {
                     </tr>
                 </thead>
                 <tbody>
-                    {leaderboard.map((row) => (
+                    {leaderboard.map((row, index) => (
                         <tr key={row.id}>
-                            <td>{row.position ?? '-'}</td>
+                            <td>{index + 1}</td>
                             <td className="player-names-cell">
                                 {row["Player Names"]?.split('\n').map((name, index) => (
                                     <div key={index} className="player-name-line">

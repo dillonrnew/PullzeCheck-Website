@@ -40,9 +40,9 @@ h1 {
 }
 
 /* =========================
-   FORM CONTAINER
+   SUBMIT FORM CONTAINER
    ========================= */
-form {
+.SubmitForm {
   background: rgba(20, 24, 45, 0.9);
   border-radius: 0 0 16px 16px;
   border-left: 2px solid rgba(110, 142, 251, 0.45);
@@ -54,6 +54,7 @@ form {
   align-items: center;
   padding-bottom: 30px;
 }
+
 
 /* =========================
    LABELS

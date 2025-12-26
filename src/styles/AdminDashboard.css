@@ -19,8 +19,6 @@
 
 /* Page */
 .dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
   padding: 3rem 1.5rem;
   color: var(--text-primary);
 }

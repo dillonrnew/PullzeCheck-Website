@@ -1,15 +1,22 @@
-// src/pages/LandingPage.tsx
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import TeamsGrid from '../components/TeamsGrid';
+import ScoreSubmissionForm from '../components/ScoreSubmissionForm';
 
-const LandingPage: React.FC = () => {
-  const { tournamentId } = useParams<{ tournamentId: string }>();
+const TeamPage: React.FC = () => {
+  const { tournamentId, teamNumber } = useParams<{ tournamentId: string; teamNumber: string }>();
 
-  if (!tournamentId || Number.isNaN(Number(tournamentId))) {
-    return <p>Invalid tournament.</p>;
+  const parsed = useMemo(() => {
+    const tId = Number(tournamentId);
+    const tNum = Number(teamNumber);
+    const valid = Boolean(tournamentId && teamNumber) && !Number.isNaN(tId) && !Number.isNaN(tNum);
+    return { valid, tId, tNum };
+  }, [tournamentId, teamNumber]);
+
+  if (!parsed.valid) {
+    return <p>Invalid route. Expected /submit/:tournamentId/:teamNumber</p>;
   }
 
-  return <TeamsGrid tournamentId={Number(tournamentId)} />;
+  return <ScoreSubmissionForm tournamentId={parsed.tId} teamNumber={parsed.tNum} maxMaps={15} />;
 };
 
-export default LandingPage;
+export default TeamPage;

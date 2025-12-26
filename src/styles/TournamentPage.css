@@ -1,0 +1,89 @@
+/* =========================
+   GRID CONTAINER (SAFE)
+   - No viewport sizing
+   - No page padding
+   ========================= */
+.teams-grid-container {
+  width: 100%;
+  color: #e0e0ff;
+}
+
+/* =========================
+   TITLE (SAFE)
+   ========================= */
+.grid-title {
+  text-align: center;
+  font-weight: 900;
+  margin-bottom: 2.5rem;
+
+  background: linear-gradient(90deg, #6e8efb, #a777e4, #8ec5fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =========================
+   GRID LAYOUT (CONTROLLED)
+   - This is where layout belongs
+   ========================= */
+.teams-grid {
+  display: grid;
+
+  /* ✅ Responsive columns without forcing width */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+  /* ✅ Spacing that does NOT affect page scroll */
+  gap: 24px;
+
+  /* Optional: center cards in last row */
+  justify-items: center;
+}
+
+/* =========================
+   TEAM CARD SAFETY
+   ========================= */
+.team-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Overlays never steal clicks */
+.team-card::before,
+.team-card::after,
+.team-card .glow,
+.team-card .overlay,
+.team-card .shine {
+  pointer-events: none;
+}
+
+/* =========================
+   LINK NEUTRALIZATION
+   ========================= */
+.team-card a,
+.team-card a:hover,
+.team-card a:visited,
+.team-card a:active,
+.team-card a:focus {
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+.team-card a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+
+
+/* =========================
+   BUTTON SAFETY
+   ========================= */
+.team-card button,
+.team-card .select-team-btn {
+  position: relative;
+  z-index: 4;
+}

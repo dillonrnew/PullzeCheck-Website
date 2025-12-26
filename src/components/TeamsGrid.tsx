@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import TeamCard from './TeamCard';
 import { supabase } from '../supabaseClient';
-import '../styles/TournamentTeamsPage.css';
+import '../styles/TournamentPage.css';
 
 // Exact match to your current teams table
 type Team = {

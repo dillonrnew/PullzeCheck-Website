@@ -4,13 +4,16 @@ import TourneysPage from './pages/TourneysPage';
 import TeamsPage from './pages/TeamsPage';
 import SubmissionPage from './pages/SubmissionPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import LeaderboardPage from './pages/LeaderboardPage';
-
+import HomePage from './pages/HomePage';
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LeaderboardPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/tourney" element={<TourneysPage />} />
         <Route path="/tourney/:tournamentId" element={<TeamsPage />} />
         <Route path="/submit/:tournamentId/:teamNumber" element={<SubmissionPage />} />

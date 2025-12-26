@@ -1,46 +1,101 @@
-// src/components/TeamsGrid.tsx
-import { useState, useEffect } from 'react';
-import TourneyCard from './TourneyCard';
+// src/components/TourneyGrid.tsx
+import { useEffect, useState } from 'react';
+import TourneyCard, { type TourneyCardTourney } from './TourneyCard';
 import { supabase } from '../supabaseClient';
-import '../styles/TournamentTeamsPage.css';
+import '../styles/TournamentPage.css';
 
-// Exact match to your current teams table
-type tourney = {
-  id: number;
-  title: string;
-  google_sheet_link: string;
+// Matches your tournaments table (quoted columns with spaces)
+export type TourneyRow = {
+  UUID: string;                 // uuid comes back as string
+  'Tourney Name': string;
+  'Sheet Link': string | null;
+  Status: 'upcoming' | 'ongoing' | 'completed';
+  'Teams Assigned': number | null;
+  'Teams Total': number | null;
+  'Prize Pool': number | null;
+  'Start Time': string | null;  // timestamptz comes back as ISO string
+  Image: string | null;
 };
 
-const TourneyGrid: React.FC = () => {
-  const [tourney, setTourney] = useState<tourney[]>([]);
+type TourneyGridProps = {
+  onViewTourney?: (tourney: TourneyCardTourney) => void;
+};
 
-    useEffect(() => {
-    const fetchTourney = async () => {
-        const { data, error } = await supabase
-            .from('tournaments')
-            .select('*')
-            .order('id', { ascending: true });
+const TourneyGrid: React.FC<TourneyGridProps> = ({ onViewTourney }) => {
+  const [tourneys, setTourneys] = useState<TourneyRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-        if (error) throw error;
+  useEffect(() => {
+    const fetchTourneys = async () => {
+      setLoading(true);
+      setErrorMsg(null);
 
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(
+          `
+          UUID,
+          "Tourney Name",
+          "Sheet Link",
+          "Status",
+          "Teams Assigned",
+          "Teams Total",
+          "Prize Pool",
+          "Start Time",
+          "Image"
+        `
+        )
+        .order('Start Time', { ascending: true, nullsFirst: false });
 
-        setTourney(data ?? []);
+      if (error) {
+        console.error('fetchTourneys error:', error);
+        setErrorMsg(error.message);
+        setTourneys([]);
+        setLoading(false);
+        return;
+      }
+
+      setTourneys((data as TourneyRow[]) ?? []);
+      setLoading(false);
     };
 
-    fetchTourney();
-    }, []);
+    fetchTourneys();
+  }, []);
 
   return (
     <div className="teams-grid-container">
       <h1 className="grid-title">Select Your Tourney</h1>
 
-      {tourney.length === 0 ? (
+      {loading ? (
+        <p>Loading…</p>
+      ) : errorMsg ? (
+        <p>{errorMsg}</p>
+      ) : tourneys.length === 0 ? (
         <p>No Active Tourneys.</p>
       ) : (
         <div className="teams-grid">
-          {tourney.map((tourney) => (
-            <TourneyCard key={tourney.id} tourney={tourney} />
-          ))}
+          {tourneys.map((t) => {
+            const mapped: TourneyCardTourney = {
+              id: t.UUID,
+              title: t['Tourney Name'],
+              start_time: t['Start Time'],
+              prize_pool: t['Prize Pool'],
+              teams_signed_up: t['Teams Assigned'],
+              teams_possible: t['Teams Total'],
+              google_sheet_link: t['Sheet Link'] ?? '',
+              image: t.Image,
+              status: t.Status,
+            };
+
+            return (
+              <TourneyCard
+                key={t.UUID}
+                tourney={mapped}
+                onView={onViewTourney}
+              />
+            );
+          })}
         </div>
       )}
     </div>
